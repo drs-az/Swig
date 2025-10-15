@@ -9,6 +9,34 @@ const recipes = window.__RECIPES__;
 const elGrid = document.getElementById('recipes');
 const adultToggle = document.getElementById('adultToggle');
 const searchInput = document.getElementById('searchInput');
+const themeToggle = document.getElementById('themeToggle');
+const metaTheme = document.querySelector('meta[name="theme-color"]');
+
+function setTheme(isDark) {
+  document.body.classList.toggle('theme-dark', isDark);
+  if (themeToggle) {
+    themeToggle.checked = isDark;
+  }
+  if (metaTheme) {
+    metaTheme.setAttribute('content', isDark ? '#0e0e0f' : '#ffffff');
+  }
+  try {
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  } catch (err) {
+    // ignore storage issues
+  }
+}
+
+function initTheme() {
+  let useDark = false;
+  try {
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark') useDark = true;
+  } catch (err) {
+    // storage unavailable, leave default light
+  }
+  setTheme(useDark);
+}
 
 function render() {
   const q = state.q.trim().toLowerCase();
@@ -102,13 +130,16 @@ function render() {
   }
 }
 
-adultToggle.addEventListener('change', (e) => {
+adultToggle?.addEventListener('change', (e) => {
   state.adult = !!e.target.checked;
   render();
 });
-searchInput.addEventListener('input', (e) => {
+searchInput?.addEventListener('input', (e) => {
   state.q = e.target.value;
   render();
+});
+themeToggle?.addEventListener('change', (e) => {
+  setTheme(!!e.target.checked);
 });
 
 // PWA install
@@ -137,4 +168,5 @@ if ('serviceWorker' in navigator) {
 }
 
 // Initial render
+initTheme();
 render();
