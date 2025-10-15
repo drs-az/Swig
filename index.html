@@ -3,33 +3,42 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#141414">
-  <title>Coconut Cola Lab</title>
+  <meta name="theme-color" content="#ffffff">
+  <title>Melissa's Soda Bar</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="logo-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="Swig-style Diet Coke recipes with coconut, lime, and optional spiced rum — offline-ready PWA.">
+  <meta name="description" content="Melissa's Soda Bar — a Swig-inspired menu of mix-in sodas with mocktail and cocktail twists, all available offline.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="app-header">
-    <img src="logo.png" alt="Logo" class="logo">
+    <img src="logo.png" alt="Melissa's Soda Bar logo" class="logo">
     <div class="titles">
-      <h1>Coconut Cola Lab</h1>
-      <p class="subtitle">Swig-style Diet Coke recipes • Coconut • Lime • Coconut Cream</p>
+      <h1>Melissa's Soda Bar</h1>
+      <p class="subtitle">Swig-inspired sodas • Mix-ins • Mocktails &amp; cocktails</p>
     </div>
     <button id="installBtn" class="install-btn" hidden>Install</button>
   </header>
 
   <main class="container">
     <section class="controls">
-      <div class="toggle-group">
-        <label class="switch">
-          <input type="checkbox" id="adultToggle">
-          <span class="slider"></span>
-        </label>
-        <span class="toggle-label">Show adult (spiced rum) versions</span>
+      <div class="toggle-stack">
+        <div class="toggle-group">
+          <label class="switch">
+            <input type="checkbox" id="adultToggle">
+            <span class="slider"></span>
+          </label>
+          <span class="toggle-label">Show adult (spiced rum) versions</span>
+        </div>
+        <div class="toggle-group">
+          <label class="switch">
+            <input type="checkbox" id="themeToggle" aria-label="Toggle dark mode">
+            <span class="slider"></span>
+          </label>
+          <span class="toggle-label">Dark mode</span>
+        </div>
       </div>
 
       <div class="search">
@@ -60,7 +69,8 @@
     "id": "founder",
     "name": "The Founder (Diet)",
     "tags": [
-      "classic"
+      "classic",
+      "diet coke"
     ],
     "ingredients": [
       "Pebble ice (to fill cup)",
@@ -85,10 +95,39 @@
     }
   },
   {
+    "id": "big_al_refresh",
+    "name": "Big Al Refresh",
+    "tags": [
+      "swig favorite",
+      "diet coke"
+    ],
+    "ingredients": [
+      "Pebble ice (to fill cup)",
+      "1 Tbsp coconut syrup",
+      "Juice of 1/2 fresh lime",
+      "12 oz Diet Coke (super cold)",
+      "Fresh lime wheel (garnish)"
+    ],
+    "method": [
+      "Layer syrup over the ice, then squeeze the lime.",
+      "Top with Diet Coke and give one gentle stir.",
+      "Tuck a lime wheel on the rim for the classic Swig touch."
+    ],
+    "notes": "Light and bright—swap in Diet Dr Pepper for a deeper take.",
+    "adult_variant": {
+      "name": "Big Al Refresh \u2014 Spiced",
+      "extra": [
+        "+ 1.5 oz coconut rum"
+      ],
+      "note": "Add coconut rum after the lime juice, before topping with soda."
+    }
+  },
+  {
     "id": "dirty_diet_coconut_lime",
     "name": "Dirty Diet Coconut Lime",
     "tags": [
-      "classic"
+      "classic",
+      "diet coke"
     ],
     "ingredients": [
       "Pebble ice (to fill cup)",
@@ -113,10 +152,69 @@
     }
   },
   {
+    "id": "missionary_muse",
+    "name": "Missionary Muse",
+    "tags": [
+      "swig favorite",
+      "dr pepper"
+    ],
+    "ingredients": [
+      "Pebble ice (to fill cup)",
+      "1 Tbsp coconut syrup",
+      "12 oz Dr Pepper",
+      "2 Tbsp half & half",
+      "Dash of vanilla syrup"
+    ],
+    "method": [
+      "Stir coconut syrup and vanilla together over the ice.",
+      "Add Dr Pepper and fold once to mix.",
+      "Float half & half for the creamy finish."
+    ],
+    "notes": "Inspired by Swig's Missionary; sub in Diet Dr Pepper if you prefer less sugar.",
+    "adult_variant": {
+      "name": "Missionary Muse \u2014 Spiced",
+      "extra": [
+        "+ 1 oz spiced rum"
+      ],
+      "note": "Add rum with the syrups before the soda to help it blend."
+    }
+  },
+  {
+    "id": "endless_summer_twist",
+    "name": "Endless Summer Twist",
+    "tags": [
+      "mountain dew",
+      "tropical"
+    ],
+    "ingredients": [
+      "Pebble ice (to fill cup)",
+      "1 Tbsp coconut syrup",
+      "1 Tbsp pineapple syrup",
+      "1 Tbsp strawberry puree",
+      "12 oz Mountain Dew",
+      "Fresh lime wedge"
+    ],
+    "method": [
+      "Build coconut, pineapple, and strawberry over ice.",
+      "Top with Mountain Dew and lift gently with a bar spoon.",
+      "Finish with a squeeze of lime over the top."
+    ],
+    "notes": "A riff on Swig's Endless Summer—use Diet Mountain Dew to lighten it up.",
+    "adult_variant": {
+      "name": "Endless Summer Twist \u2014 Spiked",
+      "extra": [
+        "+ 1 oz coconut rum",
+        "+ 1/2 oz silver tequila"
+      ],
+      "note": "Add spirits before Mountain Dew for the smoothest mix."
+    }
+  },
+  {
     "id": "coco_lime_float",
     "name": "Coco-Lime Float",
     "tags": [
-      "classic"
+      "dessert",
+      "diet coke"
     ],
     "ingredients": [
       "Pebble ice (to fill cup)",
@@ -140,10 +238,68 @@
     }
   },
   {
+    "id": "limelight_spark",
+    "name": "Limelight Spark",
+    "tags": [
+      "sprite",
+      "citrus"
+    ],
+    "ingredients": [
+      "Pebble ice (to fill cup)",
+      "1 Tbsp coconut syrup",
+      "1 Tbsp raspberry syrup",
+      "12 oz Sprite",
+      "Juice of 1/2 lime"
+    ],
+    "method": [
+      "Combine coconut and raspberry syrups over ice.",
+      "Add Sprite and finish with a squeeze of lime.",
+      "Gently lift with a spoon to bring the flavors together."
+    ],
+    "notes": "Swig's Limelight vibes—top with freeze-dried raspberries for color.",
+    "adult_variant": {
+      "name": "Limelight Spark \u2014 Gin Fizz",
+      "extra": [
+        "+ 1 oz gin"
+      ],
+      "note": "Add gin before topping with Sprite for an easy patio highball."
+    }
+  },
+  {
+    "id": "desert_jewel",
+    "name": "Desert Jewel",
+    "tags": [
+      "dr pepper",
+      "berry"
+    ],
+    "ingredients": [
+      "Pebble ice (to fill cup)",
+      "1 Tbsp blackberry syrup",
+      "1 Tbsp coconut syrup",
+      "Dash of vanilla syrup",
+      "12 oz Dr Pepper",
+      "1 Tbsp half & half"
+    ],
+    "method": [
+      "Stir blackberry, coconut, and vanilla syrups together over the ice.",
+      "Top with Dr Pepper and fold once to blend.",
+      "Float half & half for a velvety cap."
+    ],
+    "notes": "Echoes Swig's Rock-a-Bye Baby with lush blackberry-coconut vibes.",
+    "adult_variant": {
+      "name": "Desert Jewel \u2014 Spiced",
+      "extra": [
+        "+ 1 oz dark spiced rum"
+      ],
+      "note": "Add rum along with the syrups before pouring the soda."
+    }
+  },
+  {
     "id": "island_minimalist",
     "name": "Island Minimalist",
     "tags": [
-      "classic"
+      "light",
+      "diet coke"
     ],
     "ingredients": [
       "Pebble ice (to fill cup)",

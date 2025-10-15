@@ -1,5 +1,5 @@
 
-const CACHE = 'cola-lab-v1';
+const CACHE = 'melissas-soda-bar-v1';
 const ASSETS = [
   './',
   './index.html',
@@ -7,8 +7,8 @@ const ASSETS = [
   './app.js',
   './manifest.webmanifest',
   './logo.png',
-  './icon-192.png',
-  './icon-512.png'
+  './logo-192.png',
+  './logo-512.png'
 ];
 
 self.addEventListener('install', (event) => {
