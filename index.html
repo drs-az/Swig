@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#141414">
+  <title>Coconut Cola Lab</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Swig-style Diet Coke recipes with coconut, lime, and optional spiced rum — offline-ready PWA.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <img src="logo.png" alt="Logo" class="logo">
+    <div class="titles">
+      <h1>Coconut Cola Lab</h1>
+      <p class="subtitle">Swig-style Diet Coke recipes • Coconut • Lime • Coconut Cream</p>
+    </div>
+    <button id="installBtn" class="install-btn" hidden>Install</button>
+  </header>
+
+  <main class="container">
+    <section class="controls">
+      <div class="toggle-group">
+        <label class="switch">
+          <input type="checkbox" id="adultToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="toggle-label">Show adult (spiced rum) versions</span>
+      </div>
+
+      <div class="search">
+        <input id="searchInput" type="search" placeholder="Search recipes..." aria-label="Search recipes">
+      </div>
+    </section>
+
+    <section id="recipes" class="card-grid" aria-live="polite"></section>
+
+    <section class="tips">
+      <h2>Pro Tips</h2>
+      <ul>
+        <li>Use <strong>very cold</strong> Diet Coke to preserve fizz.</li>
+        <li>Start with <strong>1 tsp–1 Tbsp</strong> sugar-free coconut syrup; adjust to taste.</li>
+        <li>Stir <strong>gently</strong> after adding soda to avoid flattening.</li>
+        <li>For adult versions, add <strong>dark spiced rum (1–1.5 oz)</strong> after citrus, before soda.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>Works offline. Add to Home Screen for a full-screen experience.</small>
+  </footer>
+
+  <script>
+    window.__RECIPES__ = [
+  {
+    "id": "founder",
+    "name": "The Founder (Diet)",
+    "tags": [
+      "classic"
+    ],
+    "ingredients": [
+      "Pebble ice (to fill cup)",
+      "1 Tbsp sugar-free coconut syrup",
+      "Juice of 1/2 lime",
+      "12 oz Diet Coke (chilled)",
+      "1 Tbsp coconut cream"
+    ],
+    "method": [
+      "Fill a 16\u201320 oz glass with pebble ice.",
+      "Add sugar-free coconut syrup and fresh lime juice.",
+      "Pour in Diet Coke and stir gently.",
+      "Float in coconut cream and stir until just combined."
+    ],
+    "notes": "Adjust syrup to taste: 2 tsp (less sweet) to 1.5 Tbsp (sweeter).",
+    "adult_variant": {
+      "name": "The Founder \u2014 Spiced",
+      "extra": [
+        "+ 1.5 oz dark spiced rum"
+      ],
+      "note": "Add rum after the syrup and lime; top with Diet Coke, then coconut cream."
+    }
+  },
+  {
+    "id": "dirty_diet_coconut_lime",
+    "name": "Dirty Diet Coconut Lime",
+    "tags": [
+      "classic"
+    ],
+    "ingredients": [
+      "Pebble ice (to fill cup)",
+      "2 tsp sugar-free coconut syrup",
+      "Juice of 1/4\u20131/2 lime",
+      "12 oz Diet Coke (chilled)",
+      "1 Tbsp coconut cream"
+    ],
+    "method": [
+      "Add syrup to a glass packed with pebble ice.",
+      "Squeeze in lime juice.",
+      "Pour Diet Coke and give a brief stir.",
+      "Finish with coconut cream and a quick stir for ribbons."
+    ],
+    "notes": "Go lighter on coconut cream if you want more fizz.",
+    "adult_variant": {
+      "name": "Dirty Diet \u2014 Spiced",
+      "extra": [
+        "+ 1.5 oz dark spiced rum"
+      ],
+      "note": "Build syrup + lime + rum over ice, then Diet Coke, then cream."
+    }
+  },
+  {
+    "id": "coco_lime_float",
+    "name": "Coco-Lime Float",
+    "tags": [
+      "classic"
+    ],
+    "ingredients": [
+      "Pebble ice (to fill cup)",
+      "2 tsp sugar-free coconut syrup",
+      "Juice of 1/4 lime",
+      "12 oz Diet Coke (very cold)",
+      "2 Tbsp coconut cream"
+    ],
+    "method": [
+      "Layer syrup and lime over pebble ice.",
+      "Add Diet Coke and stir gently.",
+      "Top with extra coconut cream for a float-like cap."
+    ],
+    "notes": "Dessert-leaning; dial coconut cream down to 1 Tbsp if preferred.",
+    "adult_variant": {
+      "name": "Coco-Lime Float \u2014 Spiced",
+      "extra": [
+        "+ 1.5 oz dark spiced rum"
+      ],
+      "note": "Add rum before the Diet Coke for better mix; keep the float cap."
+    }
+  },
+  {
+    "id": "island_minimalist",
+    "name": "Island Minimalist",
+    "tags": [
+      "classic"
+    ],
+    "ingredients": [
+      "Pebble ice (to fill cup)",
+      "1 tsp sugar-free coconut syrup",
+      "Squeeze of lime (to taste)",
+      "12 oz Diet Coke (chilled)",
+      "1 tsp coconut cream (optional)"
+    ],
+    "method": [
+      "Build over ice with a restrained hand: syrup, lime, Diet Coke.",
+      "Optional tiny swirl of coconut cream; one gentle stir."
+    ],
+    "notes": "For a lighter, bright coconut-lime profile with maximum fizz.",
+    "adult_variant": {
+      "name": "Island Minimalist \u2014 Spiced",
+      "extra": [
+        "+ 1 oz dark spiced rum"
+      ],
+      "note": "Keep the rum light to preserve the minimalist concept."
+    }
+  }
+];
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
