@@ -44,6 +44,10 @@
       <div class="search">
         <input id="searchInput" type="search" placeholder="Search recipes..." aria-label="Search recipes">
       </div>
+
+      <div class="custom-recipe">
+        <a href="#" id="openCustomRecipe" class="custom-recipe-link">Save a custom recipe</a>
+      </div>
     </section>
 
     <section id="recipes" class="card-grid" aria-live="polite"></section>
@@ -62,6 +66,52 @@
   <footer class="footer">
     <small>Works offline. Add to Home Screen for a full-screen experience.</small>
   </footer>
+
+  <div class="modal" id="recipeModal" role="dialog" aria-modal="true" aria-labelledby="recipeModalTitle" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-content">
+      <button class="modal-close" type="button" aria-label="Close" data-close>&times;</button>
+      <h2 id="recipeModalTitle">Save Custom Recipe</h2>
+      <form id="customRecipeForm" novalidate>
+        <div class="field-group">
+          <label for="customName">Drink Name</label>
+          <input type="text" id="customName" name="name" required placeholder="e.g. The Innovator">
+        </div>
+
+        <div class="field-group">
+          <label for="customTags">Tags <span class="field-hint">(comma separated)</span></label>
+          <input type="text" id="customTags" name="tags" placeholder="e.g. classic, diet coke">
+        </div>
+
+        <fieldset class="field-group">
+          <legend>Ingredients</legend>
+          <ul id="ingredientList" class="input-list"></ul>
+          <button type="button" class="add-row" data-target="ingredientList">Add ingredient</button>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Method</legend>
+          <ul id="methodList" class="input-list"></ul>
+          <button type="button" class="add-row" data-target="methodList">Add step</button>
+        </fieldset>
+
+        <div class="field-group">
+          <label for="customNotes">Notes</label>
+          <textarea id="customNotes" name="notes" rows="3" placeholder="Optional notes"></textarea>
+        </div>
+
+        <div class="field-group">
+          <label for="customSpiced">Spiced</label>
+          <input type="text" id="customSpiced" name="spiced" placeholder="e.g. + 1.5 oz dark spiced rum">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="primary">Save recipe</button>
+          <button type="button" class="secondary" data-close>Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script>
     window.__RECIPES__ = [
