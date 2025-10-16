@@ -6,8 +6,14 @@ const state = {
 
 const baseRecipes = Array.isArray(window.__RECIPES__) ? window.__RECIPES__ : [];
 let customRecipes = [];
-let recipes = [...baseRecipes];
+let baseEdits = {};
+let baseDeletedIds = new Set();
+let recipes = [];
 const CUSTOM_KEY = 'customRecipes';
+const BASE_EDIT_KEY = 'baseRecipeEdits';
+const BASE_DELETE_KEY = 'baseRecipeDeleted';
+const ING_PLACEHOLDER = 'e.g. 12 oz Diet Coke';
+const METHOD_PLACEHOLDER = 'e.g. Pour over pebble ice';
 
 const elGrid = document.getElementById('recipes');
 const adultToggle = document.getElementById('adultToggle');
@@ -20,11 +26,61 @@ const customRecipeForm = document.getElementById('customRecipeForm');
 const ingredientList = document.getElementById('ingredientList');
 const methodList = document.getElementById('methodList');
 const addRowButtons = document.querySelectorAll('.add-row');
+const updateAppBtn = document.getElementById('updateAppBtn');
 
 let lastFocus = null;
+let editingRecipeId = null;
+let editingRecipeSource = null;
+let editingRecipeData = null;
+
+function normalizeRecipeData(data, source) {
+  if (!data || typeof data !== 'object') return null;
+  const recipe = { ...data };
+  recipe.id = data.id;
+  if (!recipe.id) return null;
+  recipe.name = typeof data.name === 'string' ? data.name : '';
+  recipe.tags = Array.isArray(data.tags) ? data.tags.map(t => String(t)) : [];
+  recipe.ingredients = Array.isArray(data.ingredients) ? data.ingredients.map(i => String(i)) : [];
+  recipe.method = Array.isArray(data.method) ? data.method.map(m => String(m)) : [];
+  recipe.notes = typeof data.notes === 'string' ? data.notes : (data.notes ? String(data.notes) : '');
+  if (data.adult_variant && typeof data.adult_variant === 'object') {
+    recipe.adult_variant = {
+      ...data.adult_variant,
+      name: typeof data.adult_variant.name === 'string' ? data.adult_variant.name : '',
+      extra: Array.isArray(data.adult_variant.extra) ? data.adult_variant.extra.map(e => String(e)) : [],
+      note: typeof data.adult_variant.note === 'string' ? data.adult_variant.note : (data.adult_variant.note ? String(data.adult_variant.note) : ''),
+    };
+  } else {
+    delete recipe.adult_variant;
+  }
+  if (source) {
+    recipe.source = source;
+  } else {
+    delete recipe.source;
+  }
+  return recipe;
+}
 
 function rebuildRecipes() {
-  recipes = [...baseRecipes, ...customRecipes];
+  const baseList = [];
+  baseRecipes.forEach((r) => {
+    if (!r || typeof r !== 'object') return;
+    if (baseDeletedIds.has(r.id)) return;
+    const override = baseEdits[r.id];
+    const data = override ? { ...override } : { ...r };
+    data.id = r.id;
+    const normalized = normalizeRecipeData(data, 'base');
+    if (normalized) {
+      normalized.tags = normalized.tags.length ? normalized.tags : [];
+      baseList.push(normalized);
+    }
+  });
+
+  const customList = customRecipes
+    .map(r => (r && typeof r === 'object' ? normalizeRecipeData({ ...r }, 'custom') : null))
+    .filter(Boolean);
+
+  recipes = [...baseList, ...customList];
 }
 
 function loadCustomRecipes() {
@@ -33,8 +89,10 @@ function loadCustomRecipes() {
     if (stored) {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) {
-        customRecipes = parsed.filter(r => r && typeof r === 'object');
-        rebuildRecipes();
+        customRecipes = parsed
+          .filter(r => r && typeof r === 'object')
+          .map(r => normalizeRecipeData(r))
+          .filter(Boolean);
       }
     }
   } catch (err) {
@@ -44,7 +102,60 @@ function loadCustomRecipes() {
 
 function persistCustomRecipes() {
   try {
-    localStorage.setItem(CUSTOM_KEY, JSON.stringify(customRecipes));
+    const toStore = customRecipes.map(r => {
+      const copy = { ...r };
+      delete copy.source;
+      return copy;
+    });
+    localStorage.setItem(CUSTOM_KEY, JSON.stringify(toStore));
+  } catch (err) {
+    // ignore storage issues
+  }
+}
+
+function loadBaseOverrides() {
+  baseEdits = {};
+  baseDeletedIds = new Set();
+  try {
+    const storedEdits = localStorage.getItem(BASE_EDIT_KEY);
+    if (storedEdits) {
+      const parsed = JSON.parse(storedEdits);
+      if (parsed && typeof parsed === 'object') {
+        Object.keys(parsed).forEach((id) => {
+          const value = normalizeRecipeData({ ...parsed[id], id });
+          if (value) {
+            delete value.source;
+            baseEdits[id] = value;
+          }
+        });
+      }
+    }
+    const storedDeletes = localStorage.getItem(BASE_DELETE_KEY);
+    if (storedDeletes) {
+      const parsedDeletes = JSON.parse(storedDeletes);
+      if (Array.isArray(parsedDeletes)) {
+        baseDeletedIds = new Set(parsedDeletes.filter(Boolean));
+      }
+    }
+  } catch (err) {
+    baseEdits = {};
+    baseDeletedIds = new Set();
+  }
+}
+
+function persistBaseOverrides() {
+  try {
+    const editsToStore = {};
+    Object.keys(baseEdits).forEach((id) => {
+      const edit = baseEdits[id];
+      if (edit && typeof edit === 'object') {
+        const copy = { ...edit };
+        delete copy.source;
+        editsToStore[id] = copy;
+      }
+    });
+    localStorage.setItem(BASE_EDIT_KEY, JSON.stringify(editsToStore));
+    localStorage.setItem(BASE_DELETE_KEY, JSON.stringify(Array.from(baseDeletedIds)));
   } catch (err) {
     // ignore storage issues
   }
@@ -64,10 +175,24 @@ function addListRow(listEl, placeholder, shouldFocus = true) {
   }
 }
 
-function seedList(listEl, placeholder) {
+function populateList(listEl, placeholder, values = []) {
   if (!listEl) return;
   listEl.innerHTML = '';
-  addListRow(listEl, placeholder, false);
+  const items = Array.isArray(values) && values.length ? values : [''];
+  items.forEach((value) => {
+    const li = document.createElement('li');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = placeholder;
+    input.autocomplete = 'off';
+    input.value = value || '';
+    li.appendChild(input);
+    listEl.appendChild(li);
+  });
+}
+
+function seedList(listEl, placeholder) {
+  populateList(listEl, placeholder, []);
 }
 
 function getListValues(listEl) {
@@ -77,11 +202,51 @@ function getListValues(listEl) {
     .filter(Boolean);
 }
 
-function openModal() {
+function setFormValues(recipe) {
+  if (!customRecipeForm) return;
+  customRecipeForm.reset();
+  const formElements = customRecipeForm.elements;
+  const nameInput = formElements.namedItem('name');
+  const tagsField = formElements.namedItem('tags');
+  const notesField = formElements.namedItem('notes');
+  const spicedField = formElements.namedItem('spiced');
+
+  if (recipe) {
+    customRecipeForm.dataset.mode = 'edit';
+    if (nameInput) nameInput.value = recipe.name || '';
+    if (tagsField) tagsField.value = Array.isArray(recipe.tags) ? recipe.tags.join(', ') : '';
+    populateList(ingredientList, ING_PLACEHOLDER, recipe.ingredients);
+    populateList(methodList, METHOD_PLACEHOLDER, recipe.method);
+    if (notesField) notesField.value = recipe.notes || '';
+    if (spicedField) spicedField.value = Array.isArray(recipe.adult_variant?.extra) ? recipe.adult_variant.extra.join(', ') : '';
+  } else {
+    customRecipeForm.dataset.mode = 'create';
+    if (nameInput) nameInput.value = '';
+    if (tagsField) tagsField.value = '';
+    populateList(ingredientList, ING_PLACEHOLDER, []);
+    populateList(methodList, METHOD_PLACEHOLDER, []);
+    if (notesField) notesField.value = '';
+    if (spicedField) spicedField.value = '';
+  }
+}
+
+function openModal(recipe = null) {
   if (!recipeModal) return;
+  editingRecipeId = recipe?.id || null;
+  editingRecipeSource = recipe?.source || null;
+  editingRecipeData = recipe ? JSON.parse(JSON.stringify(recipe)) : null;
+  setFormValues(recipe);
   lastFocus = document.activeElement;
   recipeModal.hidden = false;
   document.body.classList.add('modal-open');
+  const title = document.getElementById('recipeModalTitle');
+  const submitBtn = customRecipeForm?.querySelector('button[type="submit"]');
+  if (title) {
+    title.textContent = recipe ? 'Edit Recipe' : 'Save Custom Recipe';
+  }
+  if (submitBtn) {
+    submitBtn.textContent = recipe ? 'Update recipe' : 'Save recipe';
+  }
   const nameInput = customRecipeForm?.querySelector('input[name="name"]');
   nameInput?.focus();
 }
@@ -91,8 +256,20 @@ function closeModal() {
   recipeModal.hidden = true;
   document.body.classList.remove('modal-open');
   customRecipeForm?.reset();
-  seedList(ingredientList, 'e.g. 12 oz Diet Coke');
-  seedList(methodList, 'e.g. Pour over pebble ice');
+  seedList(ingredientList, ING_PLACEHOLDER);
+  seedList(methodList, METHOD_PLACEHOLDER);
+  customRecipeForm?.removeAttribute('data-mode');
+  const title = document.getElementById('recipeModalTitle');
+  if (title) {
+    title.textContent = 'Save Custom Recipe';
+  }
+  const submitBtn = customRecipeForm?.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.textContent = 'Save recipe';
+  }
+  editingRecipeId = null;
+  editingRecipeSource = null;
+  editingRecipeData = null;
   if (lastFocus) {
     lastFocus.focus();
   }
@@ -208,12 +385,55 @@ function render() {
       card.appendChild(note);
     }
 
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'card-action';
+    editBtn.textContent = 'Edit';
+    editBtn.addEventListener('click', () => openModal(r));
+    actions.appendChild(editBtn);
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'card-action danger';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.addEventListener('click', () => handleDelete(r));
+    actions.appendChild(deleteBtn);
+
+    card.appendChild(actions);
+
     elGrid.appendChild(card);
   });
 
   if (!filtered.length) {
     elGrid.innerHTML = '<p class="note">No matches. Try a different search.</p>';
   }
+}
+
+function handleDelete(recipe) {
+  if (!recipe || !recipe.id) return;
+  const isBase = recipe.source === 'base';
+  const confirmMsg = isBase
+    ? 'Delete this built-in recipe? Use Update Soda Bar later to restore the defaults.'
+    : 'Delete this custom recipe?';
+  if (!window.confirm(confirmMsg)) return;
+
+  if (isBase) {
+    baseDeletedIds.add(recipe.id);
+    delete baseEdits[recipe.id];
+    persistBaseOverrides();
+  } else {
+    const idx = customRecipes.findIndex(r => r.id === recipe.id);
+    if (idx !== -1) {
+      customRecipes.splice(idx, 1);
+      persistCustomRecipes();
+    }
+  }
+
+  rebuildRecipes();
+  render();
 }
 
 adultToggle?.addEventListener('change', (e) => {
@@ -286,9 +506,11 @@ customRecipeForm?.addEventListener('submit', (e) => {
   const notes = notesField?.value.trim() || '';
   const spicedField = form.elements.namedItem('spiced');
   const spiced = spicedField?.value.trim() || '';
-
-  const recipe = {
-    id: `custom-${Date.now()}`,
+  const spicedExtras = spiced ? spiced.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const isEditing = !!editingRecipeId;
+  const recipeId = isEditing ? editingRecipeId : `custom-${Date.now()}`;
+  const baseRecipe = {
+    id: recipeId,
     name,
     tags,
     ingredients,
@@ -296,19 +518,75 @@ customRecipeForm?.addEventListener('submit', (e) => {
     notes,
   };
 
-  if (spiced) {
-    recipe.adult_variant = {
+  if (spicedExtras.length) {
+    const existingVariant = editingRecipeData?.adult_variant;
+    baseRecipe.adult_variant = {
       name: `${name} — Spiced`,
-      extra: [spiced],
-      note: '',
+      extra: spicedExtras,
+      note: existingVariant?.note || '',
     };
   }
 
-  customRecipes.push(recipe);
-  persistCustomRecipes();
+  if (isEditing && editingRecipeSource === 'base') {
+    const stored = normalizeRecipeData(baseRecipe);
+    if (stored) {
+      delete stored.source;
+      baseEdits[recipeId] = stored;
+      persistBaseOverrides();
+    }
+  } else if (isEditing && editingRecipeSource === 'custom') {
+    const stored = normalizeRecipeData(baseRecipe);
+    if (stored) {
+      delete stored.source;
+      const idx = customRecipes.findIndex(r => r.id === recipeId);
+      if (idx !== -1) {
+        customRecipes[idx] = stored;
+      }
+      persistCustomRecipes();
+    }
+  } else {
+    const stored = normalizeRecipeData(baseRecipe);
+    if (stored) {
+      delete stored.source;
+      customRecipes.push(stored);
+      persistCustomRecipes();
+    }
+  }
+
   rebuildRecipes();
   render();
   closeModal();
+});
+
+updateAppBtn?.addEventListener('click', async () => {
+  if (updateAppBtn.disabled) return;
+  const originalText = updateAppBtn.textContent;
+  updateAppBtn.disabled = true;
+  updateAppBtn.setAttribute('aria-busy', 'true');
+  updateAppBtn.textContent = 'Updating…';
+  try {
+    try {
+      localStorage.removeItem(BASE_EDIT_KEY);
+      localStorage.removeItem(BASE_DELETE_KEY);
+    } catch (storageErr) {
+      console.warn('Unable to clear stored base recipes', storageErr);
+    }
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+    }
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(reg => reg.update()));
+    }
+    window.location.reload();
+  } catch (err) {
+    console.error(err);
+    alert('Unable to update right now. Please refresh manually.');
+    updateAppBtn.disabled = false;
+    updateAppBtn.textContent = originalText;
+    updateAppBtn.removeAttribute('aria-busy');
+  }
 });
 
 // PWA install
@@ -338,7 +616,9 @@ if ('serviceWorker' in navigator) {
 
 // Initial render
 initTheme();
-seedList(ingredientList, 'e.g. 12 oz Diet Coke');
-seedList(methodList, 'e.g. Pour over pebble ice');
+seedList(ingredientList, ING_PLACEHOLDER);
+seedList(methodList, METHOD_PLACEHOLDER);
+loadBaseOverrides();
 loadCustomRecipes();
+rebuildRecipes();
 render();

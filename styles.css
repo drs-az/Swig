@@ -113,6 +113,42 @@ ul{margin:.3rem 0 .5rem 1rem;padding:0}
 li{margin:.25rem 0}
 .note{color:var(--muted);font-size:.9rem}
 
+.card-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:auto;
+  padding-top:8px;
+}
+.card-action{
+  background:transparent;
+  border:1px solid var(--outline);
+  border-radius:10px;
+  padding:6px 12px;
+  font-size:.85rem;
+  font-weight:600;
+  color:var(--muted);
+  cursor:pointer;
+  transition:background .2s ease, color .2s ease, border-color .2s ease;
+}
+.card-action:hover,
+.card-action:focus{
+  background:var(--surface);
+  color:var(--text);
+}
+.card-action.danger{
+  border-color:rgba(255,77,141,0.5);
+  color:var(--accent);
+}
+.card-action.danger:hover,
+.card-action.danger:focus{
+  background:rgba(255,77,141,0.15);
+}
+.card-action:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
 .tips{
   margin:18px 0;
   background:var(--surface);
@@ -125,6 +161,31 @@ li{margin:.25rem 0}
   color:var(--muted);
   text-align:center;
   border-top:1px solid var(--outline);
+}
+
+.footer-actions{
+  margin-bottom:8px;
+  display:flex;
+  justify-content:center;
+}
+
+.update-btn{
+  background:transparent;
+  border:1px solid var(--outline);
+  border-radius:999px;
+  padding:8px 16px;
+  font-weight:600;
+  color:var(--accent);
+  cursor:pointer;
+  transition:background .2s ease, color .2s ease, border-color .2s ease;
+}
+.update-btn:hover,
+.update-btn:focus{
+  background:var(--surface);
+}
+.update-btn:disabled{
+  opacity:.6;
+  cursor:wait;
 }
 
 .custom-recipe{width:100%}
