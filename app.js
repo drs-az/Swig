@@ -28,6 +28,8 @@ const methodList = document.getElementById('methodList');
 const addRowButtons = document.querySelectorAll('.add-row');
 const updateAppBtn = document.getElementById('updateAppBtn');
 
+let htmlToImageLoader = null;
+
 let lastFocus = null;
 let editingRecipeId = null;
 let editingRecipeSource = null;
@@ -275,6 +277,88 @@ function closeModal() {
   }
 }
 
+function loadHtmlToImage() {
+  if (!htmlToImageLoader) {
+    htmlToImageLoader = new Promise((resolve, reject) => {
+      if (window.htmlToImage) {
+        resolve(window.htmlToImage);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js';
+      script.async = true;
+      script.onload = () => {
+        if (window.htmlToImage) {
+          resolve(window.htmlToImage);
+        } else {
+          htmlToImageLoader = null;
+          reject(new Error('Share helper unavailable'));
+        }
+      };
+      script.onerror = () => {
+        htmlToImageLoader = null;
+        reject(new Error('Failed to load share helper'));
+      };
+      document.head.appendChild(script);
+    });
+  }
+  return htmlToImageLoader;
+}
+
+async function shareRecipe(recipe, cardEl) {
+  if (!navigator.share) {
+    alert('Sharing is not supported on this device.');
+    return;
+  }
+  let stagingArea;
+  try {
+    const htmlToImage = await loadHtmlToImage();
+    const shareCard = cardEl.cloneNode(true);
+    shareCard.style.margin = '0';
+    const actions = shareCard.querySelector('.card-actions');
+    actions?.remove();
+
+    stagingArea = document.createElement('div');
+    stagingArea.style.position = 'fixed';
+    stagingArea.style.top = '-10000px';
+    stagingArea.style.left = '-10000px';
+    stagingArea.style.width = `${cardEl.offsetWidth || cardEl.getBoundingClientRect().width || 320}px`;
+    stagingArea.style.zIndex = '-1';
+    stagingArea.appendChild(shareCard);
+    document.body.appendChild(stagingArea);
+
+    const backgroundColor = getComputedStyle(document.body).backgroundColor || '#ffffff';
+    const dataUrl = await htmlToImage.toPng(shareCard, {
+      pixelRatio: Math.max(2, window.devicePixelRatio || 1),
+      backgroundColor,
+    });
+
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+    const safeName = (recipe.name || 'recipe')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'recipe';
+    const file = new File([blob], `${safeName}.png`, { type: 'image/png' });
+
+    if (navigator.canShare && !navigator.canShare({ files: [file] })) {
+      alert('Sharing is not supported on this device.');
+      return;
+    }
+
+    await navigator.share({
+      title: recipe.name || 'Soda Bar Recipe',
+      text: recipe.notes ? `${recipe.name}\n${recipe.notes}` : recipe.name || '',
+      files: [file],
+    });
+  } catch (err) {
+    console.error('Share failed', err);
+    alert('Sharing failed. Please try again later.');
+  } finally {
+    stagingArea?.remove();
+  }
+}
+
 function setTheme(isDark) {
   document.body.classList.toggle('theme-dark', isDark);
   if (themeToggle) {
@@ -394,6 +478,13 @@ function render() {
     editBtn.textContent = 'Edit';
     editBtn.addEventListener('click', () => openModal(r));
     actions.appendChild(editBtn);
+
+    const shareBtn = document.createElement('button');
+    shareBtn.type = 'button';
+    shareBtn.className = 'card-action';
+    shareBtn.textContent = 'Share';
+    shareBtn.addEventListener('click', () => shareRecipe(r, card));
+    actions.appendChild(shareBtn);
 
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
